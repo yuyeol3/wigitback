@@ -1,0 +1,6 @@
+/myvenv/
+/gittest/
+/documents/*
+/__pycache__/
+
+scratch.py
