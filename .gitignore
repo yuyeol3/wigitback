@@ -2,5 +2,9 @@
 /gittest/
 /documents/*
 /__pycache__/
+/edits/
+/.vscode/
+
+
 
 scratch.py

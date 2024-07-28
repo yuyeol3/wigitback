@@ -1,6 +1,6 @@
 import os
 
-def get_doc_list():
-    res = os.listdir("documents")
+def get_doc_list(path):
+    res = os.listdir(path)
     docs = set(res)
     return docs
