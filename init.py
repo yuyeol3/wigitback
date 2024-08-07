@@ -3,6 +3,7 @@ import mimetypes
 from flask import Flask, render_template, url_for, request, redirect
 from flask_login import LoginManager
 from model_user import User
+import utils.str_consts as sconst
 
 
 mimetypes.add_type("application/javascript", ".js")
@@ -28,4 +29,4 @@ def user_loader(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    return {"status" : "로그인이 필요합니다"}
+    return dict(status=sconst.LOGIN_REQUIRED)
