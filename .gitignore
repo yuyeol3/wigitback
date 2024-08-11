@@ -4,8 +4,9 @@
 /__pycache__/
 /edits/
 /.vscode/
+/assets/images/
+/utils/__pycache__/
 
-
-
+/assets/images/*
 scratch.py
 database.db

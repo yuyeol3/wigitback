@@ -16,6 +16,17 @@ def _rmrepo(target_path):
             os.chmod(path.join(root, file), stat.S_IRWXU)
     shutil.rmtree(target_path)
 
+
+def _getdoc(doc_name, doc_location):
+    with open(f"./{doc_location}/{doc_name}/README.md", "r", encoding="utf8") as f:
+        res = f.read()
+        return res
+
+
+def _writedoc(doc_name, doc_location, content):
+    with open(f"{doc_location}/{doc_name}/README.md", "w", encoding="utf8") as f:
+        f.write(content)
+
 def get(doc_name, doc_hash=None):
     docs = get_doc_list("./documents")
     if (doc_name == "" or doc_name not in docs):
@@ -27,17 +38,20 @@ def get(doc_name, doc_hash=None):
         head_commit = target_doc_repo.head.commit
         commit_hash = head_commit.hexsha
 
-        with open(f"./documents/{doc_name}/README.md", "r", encoding="utf8") as f:
-            res = f.read()
-            return dict(hash=commit_hash, content=res, status=sconst.SUCCESS)
+        res = _getdoc(doc_name, "documents")
+        if (res == sconst.DOC_DELETED): commit_hash = ""
+        return dict(hash=commit_hash, content=res, status=sconst.SUCCESS)
 
     try:
         repo = Repo.clone_from("./documents/" + doc_name, "./edits/" + doc_name)
         repo.git.checkout(doc_hash)
 
-        with open(f"./edits/{doc_name}/README.md", "r", encoding="utf8") as f:
-            res = f.read()
-            return dict(hash=doc_hash, content=res, status=sconst.SUCCESS)
+        latest_content = _getdoc(doc_name, "documents")
+        content = _getdoc(doc_name, "edits")
+        if (latest_content == sconst.DOC_DELETED): doc_hash = ""
+        return dict(hash=doc_hash, content=content, status=sconst.SUCCESS)
+        
+    
     except Exception as err:
         traceback.print_exc()
         return dict(res="", status=sconst.UNKNOWN_ERROR)
@@ -45,8 +59,6 @@ def get(doc_name, doc_hash=None):
     finally:
         _rmrepo(f"./edits/{doc_name}")
     
-    
-
 
 def add(doc_name, content, user_name):
     if (doc_name in get_doc_list("./documents")):
@@ -56,8 +68,7 @@ def add(doc_name, content, user_name):
         doc_dir = "documents\\" + doc_name
         os.mkdir(doc_dir)
 
-        with open(doc_dir + "/README.md", "w", encoding="utf8") as f:
-            f.write(content)
+        _writedoc(doc_name, "documents", content)
 
         abs_doc_dir = os.path.join(os.getcwd(), doc_dir)
         print(abs_doc_dir)
@@ -69,9 +80,6 @@ def add(doc_name, content, user_name):
 
         for cmd in command:
             subprocess.call(cmd, cwd=abs_doc_dir)
-        # print(return_code)
-        # repo.index.add(os.listdir(doc_dir))
-        # repo.index.commit("FIRST COMMIT")
 
         edit(doc_name, content, user_name)
 
@@ -82,7 +90,7 @@ def add(doc_name, content, user_name):
     return sconst.SUCCESS
  
 
-def edit(doc_name, content, user_name, doc_hash=None,):
+def edit(doc_name, content, user_name, doc_hash=None, redirections=None):
     if (doc_name in get_doc_list("./edits")):
         return dict(status=sconst.DOC_EDIT_IN_PROGRESS)
 
@@ -98,8 +106,7 @@ def edit(doc_name, content, user_name, doc_hash=None,):
         new_branch = repo.create_head("edit_branch")
         new_branch.checkout()
 
-        with open("./edits/" + doc_name + "/README.md", "w", encoding="utf8") as f:
-            f.write(content)
+        _writedoc(doc_name, "edits", content)
 
         repo.index.add("README.md")
         repo.index.commit(f"{user_name} updated {doc_name}")
@@ -116,11 +123,8 @@ def edit(doc_name, content, user_name, doc_hash=None,):
         print(err)
         to_return = dict(status=sconst.MERGE_CONFLICT)
 
-        with open("./edits/" + doc_name + "/README.md", "r", encoding="utf8") as f:
-            res = f.read()
-            to_return["content"] = res
-            print(res)
-
+        res = _getdoc(doc_name, "edits")
+        to_return["content"] = res
         return to_return
     
     except Exception as err:
@@ -130,9 +134,7 @@ def edit(doc_name, content, user_name, doc_hash=None,):
     finally:
         repo.close()
         _rmrepo(f"./edits/{doc_name}")
-        # shutil.rmtree(f"./edits/{doc_name}/.git", ignore_errors=False )
-        # shutil.rmtree("./edits/" + doc_name, ignore_errors=False )
-    
+
     return dict(status=sconst.SUCCESS)
 
 def get_history(doc_name, start=0, end=100):

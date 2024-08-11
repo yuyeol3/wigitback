@@ -21,8 +21,6 @@ def edit_doc(doc_name : str):
         return sconst.INVALID_ACCESS
 
     res = request.get_json()
-    print(res)
-    print(current_user.user_id)
     return documents.edit(doc_name, res["content"], current_user.user_id, res["hash"])
 
 @app.route("/deletedoc/<string:doc_name>", methods=["GET", "POST"])
@@ -32,7 +30,6 @@ def delete_doc(doc_name : str):
         return sconst.INVALID_ACCESS
 
     res = request.get_json()
-    print(res)
     return documents.edit(doc_name, sconst.DOC_DELETED, current_user.user_id, res["hash"])
 
 @app.route("/adddoc/<string:doc_name>", methods=['GET', 'POST'])
@@ -42,7 +39,6 @@ def add_doc(doc_name : str):
         return sconst.INVALID_ACCESS
 
     res = request.get_json()
-    print(res)
     com_res = documents.add(doc_name, res, current_user.user_id)
     return com_res
 
