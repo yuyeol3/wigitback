@@ -5,11 +5,12 @@ from flask_login import LoginManager
 from model_user import User
 import utils.str_consts as sconst
 
+APP_NAME = "WIGIT"
 
 mimetypes.add_type("application/javascript", ".js")
 mimetypes.add_type("text/css", ".css")
 
-app = Flask(__name__, static_folder="assets", template_folder="./")
+app = Flask(APP_NAME, static_folder="assets", template_folder="./")
 
 login_manager = LoginManager()
 login_manager.init_app(app)

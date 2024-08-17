@@ -2,6 +2,7 @@ import sqlite3
 from datetime import datetime
 import traceback
 import bcrypt
+from utils.funcs import get_doc_list
 
 SALT = b'$2b$12$vVbvdvSW3xlSGYh9y4ygp.'
 
@@ -96,21 +97,40 @@ def add_redirections(doc_name, redirections):
 
             con.commit()
 
+        added = set()
         for e in to_add:
-            cur.execute("SELECT COUNT(*) FROM redirections WHERE redirection_id=?;", (e))
-            res = int(cur.fetchone()[0])
+            # cur.execute("SELECT COUNT(*) FROM redirections WHERE redirect_id=?;", (e,))
+            # res = int(cur.fetchone()[0])
+            id_occupied = check_redirections(e)[0]
 
-            if (res == 0):
+            if (id_occupied is False and e not in get_doc_list("./documents")):
                 cur.execute('''
                     INSERT INTO redirections
                     VALUES(?, ?);
                 ''', (e, doc_name))
+                added.add(e)
 
+        con.commit()
 
-
-
+        return (ids - to_remove).union(added)
     except Exception as err:
         print(err)
+    finally:
+        db_close(con,cur)
+
+def check_redirections(check_id):
+    con, cur = get_db_con("database.db")
+
+    try:
+        cur.execute("SELECT COUNT(*), original_doc FROM redirections WHERE redirect_id=?;",
+                    (check_id,))
+        res = cur.fetchone()
+        # print(res)
+        return (res[0] >= 1, res[1])
+
+    except Exception as err:
+        traceback.print_exc()
+        return (False, "")
     finally:
         db_close(con,cur)
 

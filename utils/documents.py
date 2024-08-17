@@ -2,12 +2,14 @@ from git import Repo, GitCommandError
 import os
 from utils.funcs import get_doc_list
 import utils.str_consts as sconst
+import utils.db as dbcon
 import shutil
 import traceback
 import subprocess
 import stat
 from os import path
 
+# 레포 제거
 def _rmrepo(target_path):
     for root, dirs, files in os.walk(target_path):  
         for dir in dirs:
@@ -17,22 +19,29 @@ def _rmrepo(target_path):
     shutil.rmtree(target_path)
 
 
+# 문서 읽어오기
 def _getdoc(doc_name, doc_location):
     with open(f"./{doc_location}/{doc_name}/README.md", "r", encoding="utf8") as f:
         res = f.read()
         return res
 
-
+# 문서 쓰기
 def _writedoc(doc_name, doc_location, content):
     with open(f"{doc_location}/{doc_name}/README.md", "w", encoding="utf8") as f:
         f.write(content)
 
 def get(doc_name, doc_hash=None):
+    redirect_check = dbcon.check_redirections(doc_name)
+    if (redirect_check[0]):
+        return dict(hash="", content=redirect_check[1], status=sconst.DOC_REDIRECT)
+    
     docs = get_doc_list("./documents")
     if (doc_name == "" or doc_name not in docs):
         return dict(hash="", content="", status=sconst.DOC_NOT_EXIST)
     
 
+
+    # 문서 해쉬가 지정되어 있지 않으면
     if (doc_hash is None):
         target_doc_repo = Repo(f"./documents/{doc_name}")
         head_commit = target_doc_repo.head.commit
@@ -40,7 +49,12 @@ def get(doc_name, doc_hash=None):
 
         res = _getdoc(doc_name, "documents")
         if (res == sconst.DOC_DELETED): commit_hash = ""
-        return dict(hash=commit_hash, content=res, status=sconst.SUCCESS)
+
+        # 리다이렉션 목록 읽어오기
+        with open(f"./documents/{doc_name}/.redirections", "r", encoding="utf8") as f:
+            redirections = f.read()
+
+        return dict(hash=commit_hash, content=res, status=sconst.SUCCESS, redirections=redirections)
 
     try:
         repo = Repo.clone_from("./documents/" + doc_name, "./edits/" + doc_name)
@@ -49,7 +63,11 @@ def get(doc_name, doc_hash=None):
         latest_content = _getdoc(doc_name, "documents")
         content = _getdoc(doc_name, "edits")
         if (latest_content == sconst.DOC_DELETED): doc_hash = ""
-        return dict(hash=doc_hash, content=content, status=sconst.SUCCESS)
+
+        with open(f"./edits/{doc_name}/.redirections", "r", encoding="utf8") as f:
+            redirections = f.read()
+        
+        return dict(hash=doc_hash, content=content, status=sconst.SUCCESS, redirections=redirections)
         
     
     except Exception as err:
@@ -108,7 +126,18 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None):
 
         _writedoc(doc_name, "edits", content)
 
-        repo.index.add("README.md")
+        add_list = ["README.md", ".redirections"]
+        if (redirections is not None):
+            add_res = dbcon.add_redirections(doc_name, redirections)
+
+            with open(f"./edits/{doc_name}/.redirections", "w", encoding="utf8") as f:
+                f.write(",".join(add_res))
+            
+        else:
+            with open(f"./edits/{doc_name}/.redirections", "w", encoding="utf8") as f:
+                f.write("")
+
+        repo.index.add(add_list)
         repo.index.commit(f"{user_name} updated {doc_name}")
 
         repo.heads.main.checkout()

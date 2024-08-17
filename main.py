@@ -21,7 +21,7 @@ def edit_doc(doc_name : str):
         return sconst.INVALID_ACCESS
 
     res = request.get_json()
-    return documents.edit(doc_name, res["content"], current_user.user_id, res["hash"])
+    return documents.edit(doc_name, res["content"], current_user.user_id, res["hash"], res["redirections"])
 
 @app.route("/deletedoc/<string:doc_name>", methods=["GET", "POST"])
 @login_required
@@ -53,4 +53,5 @@ def main():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port="5000")
+    # app.run(debug=True, host="0.0.0.0", port="5000")
+    app.run(debug=True, port="5000")
