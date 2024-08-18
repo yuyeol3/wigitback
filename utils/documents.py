@@ -30,10 +30,25 @@ def _writedoc(doc_name, doc_location, content):
     with open(f"{doc_location}/{doc_name}/README.md", "w", encoding="utf8") as f:
         f.write(content)
 
+def _movedoc(pathsrc, pathdest):
+    if (os.path.exists(pathdest)):
+        return False
+    
+    try:
+        shutil.copytree(pathsrc, pathdest)
+
+        return True
+    except Exception as err:
+        traceback.print_exc()
+        return False
+    
+
+
+
 def get(doc_name, doc_hash=None):
     redirect_check = dbcon.check_redirections(doc_name)
     if (redirect_check[0]):
-        return dict(hash="", content=redirect_check[1], status=sconst.DOC_REDIRECT)
+        return dict(hash="", content=redirect_check[1], status=sconst.DOC_REDIRECT, doc_title=doc_name)
     
     docs = get_doc_list("./documents")
     if (doc_name == "" or doc_name not in docs):
@@ -51,10 +66,12 @@ def get(doc_name, doc_hash=None):
         if (res == sconst.DOC_DELETED): commit_hash = ""
 
         # 리다이렉션 목록 읽어오기
-        with open(f"./documents/{doc_name}/.redirections", "r", encoding="utf8") as f:
-            redirections = f.read()
+        redirections = ""
+        if (".redirections" in get_doc_list(f"./documents/{doc_name}/")):  # .redirections 파일이 있는 경우에만 읽어오도록 하기
+            with open(f"./documents/{doc_name}/.redirections", "r", encoding="utf8") as f:
+                redirections = f.read()
 
-        return dict(hash=commit_hash, content=res, status=sconst.SUCCESS, redirections=redirections)
+        return dict(hash=commit_hash, content=res, status=sconst.SUCCESS, redirections=redirections, doc_title=doc_name)
 
     try:
         repo = Repo.clone_from("./documents/" + doc_name, "./edits/" + doc_name)
@@ -64,10 +81,12 @@ def get(doc_name, doc_hash=None):
         content = _getdoc(doc_name, "edits")
         if (latest_content == sconst.DOC_DELETED): doc_hash = ""
 
-        with open(f"./edits/{doc_name}/.redirections", "r", encoding="utf8") as f:
-            redirections = f.read()
+        redirections = ""
+        if (".redirections" in get_doc_list(f"./edits/{doc_name}/")):  # .redirections 파일이 있는 경우에만 읽어오도록 하기
+            with open(f"./edits/{doc_name}/.redirections", "r", encoding="utf8") as f:
+                redirections = f.read()
         
-        return dict(hash=doc_hash, content=content, status=sconst.SUCCESS, redirections=redirections)
+        return dict(hash=doc_hash, content=content, status=sconst.SUCCESS, redirections=redirections, doc_title=doc_name)
         
     
     except Exception as err:
@@ -108,10 +127,35 @@ def add(doc_name, content, user_name):
     return sconst.SUCCESS
  
 
-def edit(doc_name, content, user_name, doc_hash=None, redirections=None):
+def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_doc_title=None):
     if (doc_name in get_doc_list("./edits")):
         return dict(status=sconst.DOC_EDIT_IN_PROGRESS)
+    
+    # 리다이렉션 문서인 경우 - 원본 문서가 편집되도록 하자
+    redirect_check = dbcon.check_redirections(doc_name)
+    if (redirect_check[0]):
+        doc_name = redirect_check[1]
+        edited_doc_title = doc_name
 
+    DOC_NAME_CHANGING = False
+    if (edited_doc_title is not None and doc_name != edited_doc_title):
+        RM_TEMPFUNC = lambda : ""
+        print("inside if")
+        res = _movedoc(f"./documents/{doc_name}", f"./documents/{edited_doc_title}")
+        print(res)
+
+
+        # 성공한 경우
+        if (res):
+            to_remove = f"./documents/{doc_name}"
+            RM_TEMPFUNC = lambda : _rmrepo(to_remove)  # 기본 문서 제거
+            dbcon.update_redirections(doc_name, edited_doc_title)
+            original_name_redirect = str(doc_name)
+            redirections = str(doc_name) if redirections is None else redirections + "," + original_name_redirect
+            doc_name = edited_doc_title
+            DOC_NAME_CHANGING = True
+            
+    
     try:
         repo = Repo.clone_from("./documents/" + doc_name, "./edits/" + doc_name)
         
@@ -126,9 +170,14 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None):
 
         _writedoc(doc_name, "edits", content)
 
+        print(redirections)
         add_list = ["README.md", ".redirections"]
         if (redirections is not None):
             add_res = dbcon.add_redirections(doc_name, redirections)
+
+            # 이름을 변경하는 중이면
+            if (DOC_NAME_CHANGING):
+                add_res.add(original_name_redirect)
 
             with open(f"./edits/{doc_name}/.redirections", "w", encoding="utf8") as f:
                 f.write(",".join(add_res))
@@ -163,6 +212,8 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None):
     finally:
         repo.close()
         _rmrepo(f"./edits/{doc_name}")
+        if (DOC_NAME_CHANGING):
+            RM_TEMPFUNC()
 
     return dict(status=sconst.SUCCESS)
 

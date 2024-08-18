@@ -88,6 +88,8 @@ def add_redirections(doc_name, redirections):
 
         to_remove = ids - redirection_set
         to_add = redirection_set - ids
+        # print(to_remove)
+        # print(to_add)
 
         for e in to_remove:
             cur.execute('''
@@ -103,7 +105,7 @@ def add_redirections(doc_name, redirections):
             # res = int(cur.fetchone()[0])
             id_occupied = check_redirections(e)[0]
 
-            if (id_occupied is False and e not in get_doc_list("./documents")):
+            if (id_occupied is False and e not in get_doc_list("./documents") and e !=""):
                 cur.execute('''
                     INSERT INTO redirections
                     VALUES(?, ?);
@@ -112,6 +114,7 @@ def add_redirections(doc_name, redirections):
 
         con.commit()
 
+        # print((ids - to_remove).union(added))
         return (ids - to_remove).union(added)
     except Exception as err:
         print(err)
@@ -131,6 +134,35 @@ def check_redirections(check_id):
     except Exception as err:
         traceback.print_exc()
         return (False, "")
+    finally:
+        db_close(con,cur)
+
+def update_redirections(prev_id, changed_id):
+    '''
+        기존에 original_doc 이 prev_id로 지정되어 있던 레코드를
+        changed_id로 변경하고, prev_id -> changed_id로 이동시키는 리디렉션을 생성
+    '''
+    con, cur = get_db_con("database.db")
+
+    try:
+        cur.execute('''
+            UPDATE redirections
+            SET original_doc=?
+            WHERE original_doc=?;
+
+        ''', (changed_id, prev_id))
+
+        cur.execute('''
+            INSERT INTO redirections
+            VALUES(?, ?)
+        ''', (prev_id, changed_id))
+        con.commit()
+        return True
+
+    except Exception as err:
+        traceback.print_exc()
+        return False
+    
     finally:
         db_close(con,cur)
 
