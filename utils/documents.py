@@ -138,12 +138,9 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         edited_doc_title = doc_name
 
     DOC_NAME_CHANGING = False
-    if (edited_doc_title is not None and doc_name != edited_doc_title):
-        RM_TEMPFUNC = lambda : ""
-        print("inside if")
+    if (edited_doc_title is not None and doc_name != edited_doc_title and edited_doc_title not in get_doc_list("./documents")):
+        # RM_TEMPFUNC = lambda : ""
         res = _movedoc(f"./documents/{doc_name}", f"./documents/{edited_doc_title}")
-        print(res)
-
 
         # 성공한 경우
         if (res):

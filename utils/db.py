@@ -88,6 +88,7 @@ def add_redirections(doc_name, redirections):
 
         to_remove = ids - redirection_set
         to_add = redirection_set - ids
+        to_remove.add(doc_name)
         # print(to_remove)
         # print(to_add)
 
@@ -105,7 +106,10 @@ def add_redirections(doc_name, redirections):
             # res = int(cur.fetchone()[0])
             id_occupied = check_redirections(e)[0]
 
-            if (id_occupied is False and e not in get_doc_list("./documents") and e !=""):
+            if (id_occupied is False and 
+                e not in get_doc_list("./documents") and 
+                e !="" and 
+                e != doc_name):
                 cur.execute('''
                     INSERT INTO redirections
                     VALUES(?, ?);
