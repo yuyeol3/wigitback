@@ -138,20 +138,24 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         edited_doc_title = doc_name
 
     DOC_NAME_CHANGING = False
-    if (edited_doc_title is not None and doc_name != edited_doc_title and edited_doc_title not in get_doc_list("./documents")):
-        # RM_TEMPFUNC = lambda : ""
-        res = _movedoc(f"./documents/{doc_name}", f"./documents/{edited_doc_title}")
+    if (edited_doc_title is not None and doc_name != edited_doc_title):
+        if (edited_doc_title not in get_doc_list("./documents") and 
+            dbcon.check_redirections(edited_doc_title)[0] is not True
+            ):
+            # RM_TEMPFUNC = lambda : ""
+            res = _movedoc(f"./documents/{doc_name}", f"./documents/{edited_doc_title}")
 
-        # 성공한 경우
-        if (res):
-            to_remove = f"./documents/{doc_name}"
-            RM_TEMPFUNC = lambda : _rmrepo(to_remove)  # 기본 문서 제거
-            dbcon.update_redirections(doc_name, edited_doc_title)
-            original_name_redirect = str(doc_name)
-            redirections = str(doc_name) if redirections is None else redirections + "," + original_name_redirect
-            doc_name = edited_doc_title
-            DOC_NAME_CHANGING = True
-            
+            # 성공한 경우
+            if (res):
+                to_remove = f"./documents/{doc_name}"
+                RM_TEMPFUNC = lambda : _rmrepo(to_remove)  # 기본 문서 제거
+                dbcon.update_redirections(doc_name, edited_doc_title)
+                original_name_redirect = str(doc_name)
+                redirections = str(doc_name) if redirections is None else redirections + "," + original_name_redirect
+                doc_name = edited_doc_title
+                DOC_NAME_CHANGING = True
+        else:
+            return dict(status=sconst.DOC_ALREADY_EXISTS)
     
     try:
         repo = Repo.clone_from("./documents/" + doc_name, "./edits/" + doc_name)

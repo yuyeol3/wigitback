@@ -23,7 +23,8 @@ def user_loader(user_id):
     login_info = User(
         user_id=user_info['data']['id'],
         registered_date=user_info['data']['registered_date'],
-        user_type=user_info['data']['type_id']
+        user_type=user_info['data']['type_id'],
+        email=user_info['data']['email']
     )
 
     return login_info

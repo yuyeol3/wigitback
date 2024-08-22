@@ -16,7 +16,7 @@ def db_close(con, cur):
     cur.close()
     con.close()
 
-def init_db():
+def init_db(ignitive_run=False):
     con, cur = get_db_con("database.db")
 
     try:
@@ -44,6 +44,14 @@ def init_db():
             original_doc TEXT NOT NULL            
         );
         ''')
+
+        # 사용자 타입 레코드 추가
+        if (ignitive_run):
+            cur.execute("INSERT INTO user_type VALUES('ADM', '관리자')")
+            cur.execute("INSERT INTO user_type VALUES('OPR', '운영자')")
+            cur.execute("INSERT INTO user_type VALUES('USR', '사용자')")
+            cur.execute("INSERT INTO user_type VALUES('SUS', '정지')")
+
         con.commit()
     except Exception as err:
         traceback.print_exc()
@@ -61,6 +69,27 @@ def add_user(user_id, pwd, email, user_type="USR"):
 
         cur.execute('''INSERT INTO users VALUES(?, ?, ?, ?, ?);''',
                     (user_id, hashed_pwd.decode("utf-8"), email, today_str, user_type))
+        con.commit()
+    
+    except Exception as err:
+        print(err)
+    finally:
+        db_close(con, cur)
+
+def set_user(user_id, pwd=None, email=None, user_type=None):
+    con, cur = get_db_con("database.db")
+
+    try:
+        if (pwd is not None):
+            hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), SALT)
+            cur.execute("UPDATE users SET pwd=? WHERE user_id=?", (hashed_pwd, user_id))
+
+        if (email is not None):
+            cur.execute("UPDATE users SET email=? WHERE user_id=?", (email, user_id))
+
+        if (user_type is not None):
+            cur.execute("UPDATE users SET type_id=? WHERE user_id=?", (user_type, user_id))
+        
         con.commit()
     
     except Exception as err:
@@ -125,7 +154,7 @@ def add_redirections(doc_name, redirections):
     finally:
         db_close(con,cur)
 
-def check_redirections(check_id):
+def check_redirections(check_id : str) -> tuple[bool, str]:
     con, cur = get_db_con("database.db")
 
     try:

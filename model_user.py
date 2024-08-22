@@ -5,13 +5,22 @@ from datetime import datetime
 import bcrypt
 
 class User(UserMixin):
-    def __init__(self, user_id, registered_date, user_type):
+    def __init__(self, user_id, registered_date, user_type, email):
         self.user_id = user_id
         self.registered_date = registered_date
         self.user_type = user_type
+        self.email = email
 
     def get_id(self):
         return self.user_id
+    
+    
+    def get_user_status(self):
+        '''사용자 suspended 상태'''
+        if (self.user_type == "SUS"):
+            return "정지"
+        else:
+            return "일반"
     
     @staticmethod
     def get_user_info(user_id, user_pw=None):
