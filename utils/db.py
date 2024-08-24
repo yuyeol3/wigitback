@@ -3,6 +3,7 @@ from datetime import datetime
 import traceback
 import bcrypt
 from utils.funcs import get_doc_list
+import utils.str_consts as sconst
 
 SALT = b'$2b$12$vVbvdvSW3xlSGYh9y4ygp.'
 
@@ -45,6 +46,23 @@ def init_db(ignitive_run=False):
         );
         ''')
 
+        cur.execute('''
+        CREATE TABLE IF NOT EXISTS permission_table (
+            doc_id TEXT PRIMARY KEY,
+            banned_permission TEXT NOT NULL
+        );            
+        ''')
+
+        cur.execute('''
+        CREATE TABLE IF NOT EXISTS doc_update_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            doc_id TEXT NOT NULL,
+            date TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );        
+        ''')
+
         # 사용자 타입 레코드 추가
         if (ignitive_run):
             cur.execute("INSERT INTO user_type VALUES('ADM', '관리자')")
@@ -70,9 +88,11 @@ def add_user(user_id, pwd, email, user_type="USR"):
         cur.execute('''INSERT INTO users VALUES(?, ?, ?, ?, ?);''',
                     (user_id, hashed_pwd.decode("utf-8"), email, today_str, user_type))
         con.commit()
+        return sconst.SUCCESS
     
     except Exception as err:
         print(err)
+        return sconst.UNKNOWN_ERROR
     finally:
         db_close(con, cur)
 
@@ -81,22 +101,36 @@ def set_user(user_id, pwd=None, email=None, user_type=None):
 
     try:
         if (pwd is not None):
-            hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), SALT)
-            cur.execute("UPDATE users SET pwd=? WHERE user_id=?", (hashed_pwd, user_id))
+            hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), SALT).decode()
+            cur.execute("UPDATE users SET password=? WHERE id=?", (hashed_pwd, user_id))
 
         if (email is not None):
-            cur.execute("UPDATE users SET email=? WHERE user_id=?", (email, user_id))
+            cur.execute("UPDATE users SET email=? WHERE id=?", (email, user_id))
 
         if (user_type is not None):
-            cur.execute("UPDATE users SET type_id=? WHERE user_id=?", (user_type, user_id))
+            cur.execute("UPDATE users SET type_id=? WHERE id=?", (user_type, user_id))
         
         con.commit()
     
     except Exception as err:
-        print(err)
+        traceback.print_exc()
+        raise err
     finally:
         db_close(con, cur)
 
+def delete_user(user_id):
+    con, cur = get_db_con("database.db")
+
+    try:
+        cur.execute("DELETE FROM users WHERE id=?", (user_id,))
+        
+        con.commit()
+    
+    except Exception as err:
+        traceback.print_exc()
+        raise err
+    finally:
+        db_close(con, cur)
 
 def add_redirections(doc_name, redirections):
     con, cur = get_db_con("database.db")
@@ -195,6 +229,77 @@ def update_redirections(prev_id, changed_id):
     except Exception as err:
         traceback.print_exc()
         return False
+    
+    finally:
+        db_close(con,cur)
+
+def check_permission(doc_name, user_perm):
+
+    if user_perm == "SUS":
+        return False
+
+    con, cur = get_db_con("database.db")
+
+    try:
+        doc_name = doc_name.split("&")[0]
+        doc_name = doc_name.split(".")[0]
+
+        cur.execute('''
+            SELECT * FROM permission_table
+            WHERE doc_id=?;
+        ''', (doc_name,))
+        fetched = cur.fetchone()
+        banned = []
+        if (fetched is not None):
+            banned = fetched[1].split(",")
+
+        return not (user_perm in banned)
+
+    except Exception as err:
+        traceback.print_exc()
+        return None
+    
+    finally:
+        db_close(con,cur)
+
+def add_history(doc_name: str, user_name: str):
+    con, cur = get_db_con("database.db")
+
+    try:
+        today = datetime.today()
+        udate = f"{today.year}/{today.month}/{today.day}"
+        cur.execute('''
+            INSERT INTO doc_update_history (user_id, doc_id, date)
+            VALUES(?,?,?);
+        ''', (user_name, doc_name, udate))
+
+        con.commit()
+
+    except Exception as err:
+        traceback.print_exc()
+        return None
+    
+    finally:
+        db_close(con,cur)
+
+def get_history(user_name, lim=10):
+    con, cur = get_db_con("database.db")
+
+    try:
+        cur.execute('''
+            SELECT doc_id, date FROM doc_update_history 
+            WHERE user_id=?
+            ORDER BY id DESC
+            LIMIT ?
+        ''', (user_name, lim))
+
+        res = cur.fetchall()
+        res_dict = [dict(doc_name=i[0], updated_time=i[1]) for i in res]
+        return res_dict
+
+    except Exception as err:
+        traceback.print_exc()
+        return None
     
     finally:
         db_close(con,cur)

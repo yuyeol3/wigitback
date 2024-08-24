@@ -2,6 +2,7 @@ from init import *
 import utils.documents as documents
 import utils.images as images
 import utils.str_consts as sconst
+import utils.db as dbcon
 from git import Repo
 from utils.funcs import get_doc_list
 from flask_login import login_required, current_user
@@ -36,6 +37,11 @@ class DocApi:
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
 
+        # 권한 확인
+        if dbcon.check_permission(doc_name, current_user.user_type) is False:
+            return dict(status=sconst.NO_PERMISSION)
+
+
         res = request.get_json()
         return documents.edit(doc_name, res["content"], current_user.user_id, res["hash"], res["redirections"], res["doc_title"])
 
@@ -46,6 +52,10 @@ class DocApi:
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
 
+        if dbcon.check_permission(doc_name, current_user.user_type) is False:
+            return dict(status=sconst.NO_PERMISSION)
+
+
         res = request.get_json()
         return documents.edit(doc_name, sconst.DOC_DELETED, current_user.user_id, res["hash"])
 
@@ -55,6 +65,10 @@ class DocApi:
     def add_doc(doc_name : str):
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
+
+        if dbcon.check_permission(doc_name, current_user.user_type) is False:
+            return dict(status=sconst.NO_PERMISSION)
+
 
         res = request.get_json()
         com_res = documents.add(doc_name, res, current_user.user_id)
@@ -75,6 +89,9 @@ class ImageApi:
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
         
+        if dbcon.check_permission(image_name, current_user.user_type) is False:
+            return dict(status=sconst.NO_PERMISSION)
+
         if 'file' not in request.files:
             return dict(status=sconst.NO_FILE)
         
@@ -85,6 +102,9 @@ class ImageApi:
     @app.route("/deleteimage/<string:image_name>", methods=['GET'])
     @login_required
     def delete_image(image_name):
+        if dbcon.check_permission(image_name, current_user.user_type) is False:
+            return dict(status=sconst.NO_PERMISSION)
+        
         return images.delete(image_name)
 
     @staticmethod

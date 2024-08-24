@@ -44,7 +44,6 @@ def _movedoc(pathsrc, pathdest):
     
 
 
-
 def get(doc_name, doc_hash=None):
     redirect_check = dbcon.check_redirections(doc_name)
     if (redirect_check[0]):
@@ -198,6 +197,8 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
 
         originRepo.git.reset("--hard")        
 
+        dbcon.add_history(doc_name, user_name)
+
     except GitCommandError as err:
         print(err)
         to_return = dict(status=sconst.MERGE_CONFLICT)
@@ -224,7 +225,7 @@ def get_history(doc_name, start=0, end=100):
     
     try:
         repo = Repo("./documents/" + doc_name)
-        commits = [dict(message=i.message, hash=i.hexsha) for i in repo.iter_commits('main')]
+        commits = [dict(message=i.message, hash=i.hexsha, updated_time=i.committed_datetime) for i in repo.iter_commits('main')]
         commits = commits[max(0, start):min(len(commits)-1, end)]
 
     except Exception as err:

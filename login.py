@@ -3,8 +3,11 @@ from flask_login import login_user, logout_user, login_required, current_user
 from init import app
 from model_user import User
 import bcrypt
-from utils.db import SALT
+from utils.db import SALT, add_user, set_user, delete_user, get_history
+import base64
 import utils.str_consts as sconst
+import re
+import traceback
 
 class LoginApi:
     @staticmethod
@@ -54,13 +57,16 @@ class LoginApi:
     @app.route("/userinfo/detailed")
     @login_required
     def userinfo_detailed():
+        commit_history = get_history(current_user.user_id)
+
         return dict(
             status=sconst.SUCCESS,
             content=dict(
                 user_id = current_user.user_id,
                 registered_date = current_user.registered_date,
                 user_status = current_user.get_user_status(),
-                email=current_user.email
+                email=current_user.email,
+                history=commit_history
             )
         )
     
@@ -75,3 +81,93 @@ class LoginApi:
 
         return dict(status=sconst.SUCCESS, content=dict(is_usable=(user_info["count"] == 0) ))
 
+    @staticmethod
+    @app.route("/userpwdcheck", methods=["GET", "POST"])
+    @login_required
+    def user_pwd_check():
+        if request.method == "GET":
+            return dict(status=sconst.INVALID_ACCESS)
+        
+        res = request.get_json()
+        user_pwd = base64.decodebytes(res["pwd"].encode()).decode()
+        hashed_pw = bcrypt.hashpw(user_pwd.encode(), SALT).decode()
+        check_res = int(User.get_user_info(current_user.user_id, hashed_pw)["count"] == 1)
+        return dict(status=[sconst.FAILURE, sconst.SUCCESS][check_res])
+    
+
+    @staticmethod
+    @app.route("/register", methods=['GET', 'POST'])
+    def register():
+        if request.method == 'GET':
+            return dict(status=sconst.INVALID_ACCESS)
+        
+        res = request.get_json()
+        if (register_check(res)):
+
+            register_result = add_user(
+                user_id=res["user_id"],
+                pwd=base64.decodebytes(res["pwd"].encode()).decode(),
+                email=res["email"]
+            )
+            return dict(status=register_result)
+        
+        else:
+            return dict(status=sconst.UNKNOWN_ERROR)
+
+    @staticmethod
+    @app.route("/setuserinfo", methods=["GET", "POST"])
+    @login_required
+    def set_user_info():
+        if request.method == 'GET':
+            return dict(status=sconst.INVALID_ACCESS)
+        try:
+            res = request.get_json()
+            user_id = current_user.user_id
+
+            if "email" in res and res["email"] != "":
+                set_user(user_id=user_id, email=res["email"])
+
+            if "pwd" in res and res["pwd"] != "":
+                set_user(user_id=user_id, pwd=base64.decodebytes(res["pwd"].encode()).decode())
+
+            return dict(status=sconst.SUCCESS)
+        except Exception as err:
+            traceback.print_exc()
+            return dict(status=sconst.UNKNOWN_ERROR)
+        
+    @staticmethod
+    @app.route("/deleteuser", methods=["GET"])
+    @login_required
+    def delete_user():
+        try:
+            user_id = current_user.user_id
+            logout_user()
+            delete_user(user_id)
+            return dict(status=sconst.SUCCESS)
+        
+        except Exception as err:
+            traceback.print_exc()
+            return dict(status=sconst.UNKNOWN_ERROR)
+
+def register_check(user_info):
+    '''
+    보내온 user_info가 vaild한지 확인
+    '''
+    try:
+        for key in user_info:
+            if user_info[key] == "":
+                return False
+            
+        if User.get_user_info(user_info["user_id"])["count"] != 0:
+            return False
+        
+        if (len(re.findall("\\w+@\\w+\\.\\w+", user_info["email"])) != 1):
+            return False
+        
+        decoded_pwd = base64.decodebytes(user_info["pwd"].encode()).decode()
+        
+    except Exception as err:
+        traceback.print_exc()
+        return False
+    
+    return True
