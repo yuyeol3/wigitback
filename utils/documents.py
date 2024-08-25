@@ -199,7 +199,7 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         repo.index.add(add_list)
         repo.index.commit(f"{user_name} updated {doc_name}")
 
-        repo.heads.main.checkout()
+        repo.heads.master.checkout()
         repo.git.merge('edit_branch')
 
         repo.delete_head("edit_branch", force=True)
