@@ -57,7 +57,7 @@ class LoginApi:
     @app.route("/userinfo/detailed")
     @login_required
     def userinfo_detailed():
-        commit_history = get_history(current_user.user_id)
+        commit_history = get_history(current_user.user_id, lim=20)
 
         return dict(
             status=sconst.SUCCESS,
