@@ -101,7 +101,7 @@ def add(doc_name, content, user_name):
         return sconst.DOC_ALREADY_EXISTS
 
     try:
-        doc_dir = "documents\\" + doc_name
+        doc_dir = "documents/" + doc_name
         os.mkdir(doc_dir)
 
         _writedoc(doc_name, "documents", content)
