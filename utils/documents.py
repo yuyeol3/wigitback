@@ -108,11 +108,16 @@ def add(doc_name, content, user_name):
 
         abs_doc_dir = os.path.join(os.getcwd(), doc_dir)
         print(abs_doc_dir)
+
+
         command = [
             "git init",
             "git add .",
             "git commit -m \"FIRST COMMIT\""
         ]
+        # 우분투인 경우 실행
+        if (os.name == "posix"):
+            command = [i.split(" ") for i in command]
 
         for cmd in command:
             subprocess.call(cmd, cwd=abs_doc_dir)
