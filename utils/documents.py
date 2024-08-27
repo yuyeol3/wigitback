@@ -55,11 +55,12 @@ def get(doc_name, doc_hash=None):
     
 
 
+    target_doc_repo = Repo(f"./documents/{doc_name}")
+    head_commit = target_doc_repo.head.commit
+    HEAD_HASH = head_commit.hexsha
     # 문서 해쉬가 지정되어 있지 않으면
     if (doc_hash is None):
-        target_doc_repo = Repo(f"./documents/{doc_name}")
-        head_commit = target_doc_repo.head.commit
-        commit_hash = head_commit.hexsha
+        commit_hash = HEAD_HASH
 
         res = _getdoc(doc_name, "documents")
         if (res == sconst.DOC_DELETED): commit_hash = ""
@@ -70,7 +71,7 @@ def get(doc_name, doc_hash=None):
             with open(f"./documents/{doc_name}/.redirections", "r", encoding="utf8") as f:
                 redirections = f.read()
 
-        return dict(hash=commit_hash, content=res, status=sconst.SUCCESS, redirections=redirections, doc_title=doc_name)
+        return dict(hash=commit_hash, content=res, status=sconst.SUCCESS, redirections=redirections, doc_title=doc_name, head_hash=HEAD_HASH)
 
     try:
         repo = Repo.clone_from("./documents/" + doc_name, "./edits/" + doc_name)
@@ -85,7 +86,7 @@ def get(doc_name, doc_hash=None):
             with open(f"./edits/{doc_name}/.redirections", "r", encoding="utf8") as f:
                 redirections = f.read()
         
-        return dict(hash=doc_hash, content=content, status=sconst.SUCCESS, redirections=redirections, doc_title=doc_name)
+        return dict(hash=doc_hash, content=content, status=sconst.SUCCESS, redirections=redirections, doc_title=doc_name, head_hash=HEAD_HASH)
         
     
     except Exception as err:
@@ -146,6 +147,7 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         doc_name = redirect_check[1]
         edited_doc_title = doc_name
 
+    # 이름 변경 처리부분
     DOC_NAME_CHANGING = False
     if (edited_doc_title is not None and doc_name != edited_doc_title):
         if (edited_doc_title not in get_doc_list("./documents") and 
@@ -166,6 +168,7 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         else:
             return dict(status=sconst.DOC_ALREADY_EXISTS)
     
+
     try:
         repo = Repo.clone_from("./documents/" + doc_name, "./edits/" + doc_name)
         
