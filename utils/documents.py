@@ -147,7 +147,7 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
     redirect_check = dbcon.check_redirections(doc_name)
     if (redirect_check[0]):
         # 리다이렉션이면 원본 문서에 대한 권한 재확인해야 함
-        if (dbcon.check_permission(doc_name, current_user.user_type) is False):
+        if (dbcon.check_permission(redirect_check[1], current_user.user_type) is False):
             return dict(status=sconst.NO_PERMISSION)
         
 
