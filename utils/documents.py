@@ -8,6 +8,7 @@ import traceback
 import subprocess
 import stat
 from os import path
+from flask_login import current_user
 
 # 레포 제거
 def _rmrepo(target_path):
@@ -142,8 +143,14 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         return dict(status=sconst.DOC_EDIT_IN_PROGRESS)
     
     # 리다이렉션 문서인 경우 - 원본 문서가 편집되도록 하자
+
     redirect_check = dbcon.check_redirections(doc_name)
     if (redirect_check[0]):
+        # 리다이렉션이면 원본 문서에 대한 권한 재확인해야 함
+        if (dbcon.check_permission(doc_name, current_user.user_type) is False):
+            return dict(status=sconst.NO_PERMISSION)
+        
+
         doc_name = redirect_check[1]
         edited_doc_title = doc_name
 
