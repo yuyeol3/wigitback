@@ -5,29 +5,32 @@
     <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>wigit</title>
-    <script type="module" crossorigin src="/assets/index-DeqDARkN.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-TBZZKMRL.css">
+    <script type="module" crossorigin src="/assets/index-DAtTmwbK.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-4W86292Y.css">
   </head>
   <body>
     <div id="app">
+      <div id="progress-stat"><div id="progress-bar"></div></div>
+      <div id="content-outer">
+        <div id="content"></div>
+      </div>
       <div id="header">
         <div id="title"><button id="title-button" onclick="location.href='./#'">WIGIT</button></div>
         <div id="menu">
           <a href="./#login" id="login-status">로그인</a>
           <div id="search">
             <form action="javascript:null;">
-              <input id="search-bar" list="searched-list">
+              <div id="searchbar-wrapper">
+                  <input id="search-bar" type="search">
+                  <div id="search-list"></div>
+              </div>
               <button id="search-btn">🔍</button>
-              <datalist id="searched-list">
-              </datalist>
+              <!-- <datalist id="searched-list">
+              </datalist> -->
             </form>
 
           </div>
         </div>
-      </div>
-      <div id="progress-stat"><div id="progress-bar"></div></div>
-      <div id="content-outer">
-        <div id="content"></div>
       </div>
     </div>
   </body>
