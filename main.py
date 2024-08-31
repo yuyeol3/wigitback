@@ -3,6 +3,7 @@ import utils.documents as documents
 import utils.images as images
 import utils.str_consts as sconst
 import utils.db as dbcon
+import utils.search as search
 from git import Repo
 from utils.funcs import get_doc_list
 from flask_login import login_required, current_user
@@ -112,6 +113,11 @@ class ImageApi:
     def get_image(image_name):
         return images.get(image_name)
     
+class SearchApi:
+    @staticmethod
+    @app.route("/search/<string:to_search>", methods=['GET'])
+    def search(to_search):
+        return search.search(to_search)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port="5000")

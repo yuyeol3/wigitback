@@ -256,3 +256,4 @@ def get_history(doc_name, start=0, end=100):
         repo.close()
 
     return dict(status=sconst.SUCCESS, content=commits)
+
