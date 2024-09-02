@@ -104,7 +104,7 @@ class ImageApi:
     @app.route("/deleteimage/<string:image_name>", methods=['GET'])
     @login_required
     def delete_image(image_name):
-        if dbcon.check_permission(image_name, current_user.user_type) is False:
+        if dbcon.check_permission(image_name.replace("image::", ""), current_user.user_type) is False:
             return dict(status=sconst.NO_PERMISSION)
         
         return images.delete(image_name)
