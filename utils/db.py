@@ -4,8 +4,9 @@ import traceback
 import bcrypt
 from utils.funcs import get_doc_list
 import utils.str_consts as sconst
+import env
 
-SALT = b'$2b$12$vVbvdvSW3xlSGYh9y4ygp.'
+SALT = env.SALT
 
 def get_db_con(filename):
     con = sqlite3.connect(filename)

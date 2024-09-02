@@ -4,7 +4,7 @@ import utils.str_consts as sconst
 import traceback
 from PIL import Image
 
-ALLOWED_FILES = {"png", "jpg", 'gif', 'jpeg'}
+ALLOWED_FILES = {"png", "jpg", 'gif', 'jpeg', 'webp'}
 # images 경로 있는지 확인
 IMG_PATH_LIST = [".", "assets", "images"]
 if (IMG_PATH_LIST[2] not in get_doc_list(IMG_PATH_LIST[1])):

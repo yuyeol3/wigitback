@@ -90,7 +90,8 @@ class ImageApi:
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
         
-        if dbcon.check_permission(image_name, current_user.user_type) is False:
+        # 문서처럼 권한검사 위해 image::는 떼고 
+        if dbcon.check_permission(image_name.replace("image::", ""), current_user.user_type) is False:
             return dict(status=sconst.NO_PERMISSION)
 
         if 'file' not in request.files:
