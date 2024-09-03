@@ -8,7 +8,7 @@ def search(to_search):
         to_search = to_search.replace(" ", "")
         documents = get_doc_list("./documents")
         images = get_doc_list("./assets/images")
-        images = ["image::"+ i.split(".")[0] for i in images]
+        images = ["image::"+ ".".join(i.split(".")[:-1]) for i in images]
 
         matched = []
         for title in documents:
