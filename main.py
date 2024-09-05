@@ -65,7 +65,7 @@ class DocApi:
     @login_required
     def add_doc(doc_name : str):
         if request.method == 'GET':
-            return sconst.INVALID_ACCESS
+            return dict(status=sconst.INVALID_ACCESS)
 
         if dbcon.check_permission(doc_name, current_user.user_type) is False:
             return dict(status=sconst.NO_PERMISSION)
@@ -79,6 +79,11 @@ class DocApi:
     @app.route("/gethistory/<string:doc_name>&<int:start>&<int:end>")
     def get_history(doc_name, start, end):
         return documents.get_history(doc_name, start, end)
+    
+    @staticmethod
+    @app.route("/diff/<string:doc_name>&<string:hash1>&<string:hash2>")
+    def get_diff(doc_name, hash1, hash2):
+        return documents.diff(doc_name, hash1, hash2)
 
 
 class ImageApi:

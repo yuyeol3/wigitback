@@ -133,9 +133,9 @@ def add(doc_name, content, user_name):
 
     except Exception as err:
         print(err)
-        return sconst.UNKNOWN_ERROR
+        return dict(status=sconst.UNKNOWN_ERROR)
     
-    return sconst.SUCCESS
+    return dict(status=sconst.SUCCESS)
  
 
 def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_doc_title=None):
@@ -241,7 +241,7 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
 
 def get_history(doc_name, start=0, end=100):
     if (doc_name not in get_doc_list("./documents")):
-        return sconst.DOC_NOT_EXIST
+        return dict(status=sconst.DOC_NOT_EXIST)
     
     try:
         repo = Repo("./documents/" + doc_name)
@@ -257,3 +257,31 @@ def get_history(doc_name, start=0, end=100):
 
     return dict(status=sconst.SUCCESS, content=commits)
 
+def diff(doc_name, hash1, hash2):
+    if (doc_name not in get_doc_list("./documents")):
+        return dict(status=sconst.DOC_NOT_EXIST)
+    
+    try:
+        repo = Repo("./documents/" + doc_name)
+
+        commit1 = repo.commit(hash1)
+        commit2 = repo.commit(hash2)
+
+        diff_content = repo.git.diff(commit1, commit2, "README.md")
+        diff_content = diff_content.split("\n")
+
+        return dict(status=sconst.SUCCESS, content=diff_content[4:])
+        # print(diff_index)
+
+        # for diff in diff_index.iter_change_type('M'):
+        #     print("A blob:\n{}".format(diff.a_blob.data_stream.read().decode('utf-8')))
+        #     print("B blob:\n{}".format(diff.b_blob.data_stream.read().decode('utf-8'))) 
+
+        
+    except Exception as err:
+        traceback.print_exc()
+        return dict(status=sconst.UNKNOWN_ERROR)
+    finally:
+        repo.close()
+
+    return dict(status=sconst.SUCCESS)
