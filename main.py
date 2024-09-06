@@ -18,6 +18,10 @@ def main():
     '''
     return render_template("index.html")
 
+@app.route("/google13d59d2dbc14122a.html")
+def google_cert():
+    return render_template("google13d59d2dbc14122a.html")
+
 
 class DocApi:
     '''
