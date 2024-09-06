@@ -245,7 +245,10 @@ def get_history(doc_name, start=0, end=100):
     
     try:
         repo = Repo("./documents/" + doc_name)
-        commits = [dict(message=i.message, hash=i.hexsha, updated_time=i.committed_datetime) for i in repo.iter_commits('master')]
+        commits = [
+            dict(message=i.message, hash=i.hexsha, updated_time=i.committed_datetime)
+            for i in repo.iter_commits('master')
+        ]
         commits = commits[max(0, start):min(len(commits)-1, end)]
 
     except Exception as err:
