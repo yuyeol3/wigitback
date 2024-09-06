@@ -108,9 +108,9 @@ Please report this to https://github.com/markedjs/marked.`,e){const s="<p>An err
         <div id="doc-history">
             <h1>비교할 버전을 선택하세요.</h1>
         </div>
-    `;document.getElementById("content").innerHTML=n;const s=document.getElementById("doc-history");let i=0,o=30;const l=async()=>{(await pe(t,i,o)).content.forEach(u=>{const h=new Date(u.updated_time).toISOString().split("T")[0];let p=document.createElement("p");p.innerHTML=`
-                - ${h}(<a href="./#diff/name=${t}&src=${e.at(-1)}&dest=${u.hash}">비교하기</a>)(by ${u.message.split(" ")[0]})
-            `,s.appendChild(p)})};l();const a=document.querySelector("#content-outer");let c=!1;a.onscroll=async()=>{if(c)return;const u=a.clientHeight/(a.scrollHeight-a.scrollTop)*100;u>=90&&(i=o,o+=30,await l()),u>=100&&(c=!0)}}async function Pt(r){const e=De(r),t=await Qe(e.name,e.src,e.dest),n=await Le(t.content);document.getElementById("content").innerHTML=`
+    `;document.getElementById("content").innerHTML=n;const s=document.getElementById("doc-history");let i=0,o=30;const l=async()=>{(await pe(t,i,o)).content.forEach(c=>{const d=new Date(c.updated_time).toISOString().split("T")[0];let h=document.createElement("p");h.innerHTML=`
+                - ${d}(<a href="./#diff/name=${t}&src=${e.at(-1)}&dest=${c.hash}">비교하기</a>)(by ${c.message.split(" ")[0]})
+            `,s.appendChild(h)})};l();const a=document.querySelector("#content-outer");a.onscroll=async()=>{const c=a.clientHeight/(a.scrollHeight-a.scrollTop)*100;c>=95&&(i=o,o+=30,await l()),c>=100&&(reached_100=!0)}}async function Pt(r){const e=De(r),t=await Qe(e.name,e.src,e.dest),n=await Le(t.content);document.getElementById("content").innerHTML=`
 	<h1>비교</h1>
 	<div id="diffDiv">
 	</div>
