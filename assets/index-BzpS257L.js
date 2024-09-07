@@ -78,7 +78,7 @@ Please report this to https://github.com/markedjs/marked.`,e){const s="<p>An err
         <a href="./#edit/${x(o)}">수정하기</a>
         <a href="./#history/${x(o)}">히스토리 보기</a>
         <a href="javascript:null;" id="deleteThis">삭제하기</a>
-    `;document.getElementById("content").innerHTML=n+t,document.getElementById("deleteThis").onclick=()=>{Pt(o)},document.getElementById("content").querySelectorAll("img").forEach((i,r)=>{const l=i.getAttribute("src").split("/");if(l[1]=="assets"&&l[2]=="images"){const a=l.slice(3).join("").split(".")[0];i.onclick=()=>{location.hash=`#w/image::${a}`}}}),v(`WIGIT : ${x(decodeURI(o))}`)}async function Ct(o){const e=await te(o);if(e.status==T.DOC_NOT_EXIST){ve(o);return}e.doc_title=x(e.doc_title),v(`${decodeURI(o)} 수정`);const t=`
+    `;document.getElementById("content").innerHTML=n+t,document.getElementById("deleteThis").onclick=()=>{Pt(o)},document.getElementById("content").querySelectorAll("img").forEach((i,r)=>{const l=i.getAttribute("src").split("/");if(l[1]=="assets"&&l[2]=="images"){const a=l.slice(3).join("").split(".").slice(0,-1).join(".");i.onclick=()=>{location.hash=`#w/image::${a}`}}}),v(`WIGIT : ${x(decodeURI(o))}`)}async function Ct(o){const e=await te(o);if(e.status==T.DOC_NOT_EXIST){ve(o);return}e.doc_title=x(e.doc_title),v(`${decodeURI(o)} 수정`);const t=`
       <h1>문서 수정</h1>
 	  <h2>제목</h2>
       <input placeholder="제목" id="doc-title">
