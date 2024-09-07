@@ -77,7 +77,6 @@ def _writedoc(doc_name, doc_location, content):
             tags=allowed_html_tags, 
             attributes=allowed_attributes, 
             css_sanitizer=css_sanitizer,
-        
         ))
 
 
@@ -325,17 +324,9 @@ def diff(doc_name, hash1, hash2):
         diff_content = diff_content.split("\n")
 
         return dict(status=sconst.SUCCESS, content=diff_content[4:])
-        # print(diff_index)
-
-        # for diff in diff_index.iter_change_type('M'):
-        #     print("A blob:\n{}".format(diff.a_blob.data_stream.read().decode('utf-8')))
-        #     print("B blob:\n{}".format(diff.b_blob.data_stream.read().decode('utf-8'))) 
-
-        
+    
     except Exception as err:
         traceback.print_exc()
         return dict(status=sconst.UNKNOWN_ERROR)
     finally:
         repo.close()
-
-    return dict(status=sconst.SUCCESS)
