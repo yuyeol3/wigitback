@@ -48,7 +48,8 @@ def _writedoc(doc_name, doc_location, content):
         "rect",
         "circle",
         "sup",
-        'blockquote'
+        'blockquote',
+        'ruby',
     ]
     allowed_attributes = {
         'table': ['border', 'cellspacing', 'cellpadding', 'width', 'height'],
@@ -58,12 +59,13 @@ def _writedoc(doc_name, doc_location, content):
         'a': ['title', 'target', 'rel', 'name'],
         'b': [],  # 속성 허용하지 않음 (기본 텍스트 스타일 태그)
         'code': ['class'],  # 코드 블록에 클래스 적용 가능
-        'img': ['src', 'alt', 'width', 'height', 'title'],
+        'img': ['src', 'alt', 'width', 'height', 'title', 'onclick'],
         'svg': ['width', 'height', 'viewBox', 'xmlns'],
         'path': ['d', 'fill', 'stroke', 'stroke-width'],
         'line': ['x1', 'x2', 'y1', 'y2', 'stroke', 'stroke-width'],
         'rect': ['x', 'y', 'width', 'height', 'fill', 'stroke', 'stroke-width', 'rx', 'ry'],
-        'circle': ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width']
+        'circle': ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width'],
+        'ruby': []
     }
     allowed_css_properties = [
         'color', 'font-size', 'font-weight', 'text-align', 'background-color',
@@ -78,7 +80,6 @@ def _writedoc(doc_name, doc_location, content):
             attributes=allowed_attributes, 
             css_sanitizer=css_sanitizer,
         ))
-
 
 
 def _movedoc(pathsrc, pathdest):
