@@ -62,7 +62,7 @@ def _writedoc(doc_name, doc_location, content):
         'svg': ['width', 'height', 'viewBox', 'xmlns'],
         'path': ['d', 'fill', 'stroke', 'stroke-width'],
         'line': ['x1', 'x2', 'y1', 'y2', 'stroke', 'stroke-width'],
-        'rect': ['x', 'y', 'width', 'height', 'fill', 'stroke', 'stroke-width'],
+        'rect': ['x', 'y', 'width', 'height', 'fill', 'stroke', 'stroke-width', 'rx', 'ry'],
         'circle': ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width']
     }
     allowed_css_properties = [
@@ -76,7 +76,8 @@ def _writedoc(doc_name, doc_location, content):
             content , 
             tags=allowed_html_tags, 
             attributes=allowed_attributes, 
-            css_sanitizer=css_sanitizer
+            css_sanitizer=css_sanitizer,
+        
         ))
 
 
