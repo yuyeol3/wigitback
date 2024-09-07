@@ -9,6 +9,8 @@ import subprocess
 import stat
 from os import path
 from flask_login import current_user
+import bleach
+from bleach.css_sanitizer import CSSSanitizer
 
 # 레포 제거
 def _rmrepo(target_path):
@@ -28,8 +30,52 @@ def _getdoc(doc_name, doc_location):
 
 # 문서 쓰기
 def _writedoc(doc_name, doc_location, content):
+    allowed_html_tags = [
+        'table',
+        'tr',
+        'td',
+        'span',
+        'a',
+        'b',
+        'code',
+        'img',
+        'svg',
+        "path",
+        "line",
+        "rect",
+        "circle",
+        "sup"
+    ]
+    allowed_attributes = {
+        'table': ['border', 'cellspacing', 'cellpadding', 'width', 'height'],
+        'tr': ['align', 'valign', 'style'],
+        'td': ['colspan', 'rowspan', 'align', 'valign', 'style', 'width', 'height'],
+        'span': ['style', 'class'],
+        'a': ['title', 'target', 'rel', 'name'],
+        'b': [],  # 속성 허용하지 않음 (기본 텍스트 스타일 태그)
+        'code': ['class'],  # 코드 블록에 클래스 적용 가능
+        'img': ['src', 'alt', 'width', 'height', 'title'],
+        'svg': ['width', 'height', 'viewBox', 'xmlns'],
+        'path': ['d', 'fill', 'stroke', 'stroke-width'],
+        'line': ['x1', 'x2', 'y1', 'y2', 'stroke', 'stroke-width'],
+        'rect': ['x', 'y', 'width', 'height', 'fill', 'stroke', 'stroke-width'],
+        'circle': ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width']
+    }
+    allowed_css_properties = [
+        'color', 'font-size', 'font-weight', 'text-align', 'background-color',
+        'width', 'height', 'border', 'padding', 'margin'
+    ]
+    css_sanitizer = CSSSanitizer(allowed_css_properties=allowed_css_properties)
+
     with open(f"{doc_location}/{doc_name}/README.md", "w", encoding="utf8") as f:
-        f.write(content)
+        f.write(bleach.clean( 
+            content , 
+            tags=allowed_html_tags, 
+            attributes=allowed_attributes, 
+            css_sanitizer=css_sanitizer
+        ))
+
+
 
 def _movedoc(pathsrc, pathdest):
     if (os.path.exists(pathdest)):
