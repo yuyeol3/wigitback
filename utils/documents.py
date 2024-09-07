@@ -47,7 +47,8 @@ def _writedoc(doc_name, doc_location, content):
         "line",
         "rect",
         "circle",
-        "sup"
+        "sup",
+        'blockquote'
     ]
     allowed_attributes = {
         'table': ['border', 'cellspacing', 'cellpadding', 'width', 'height'],
