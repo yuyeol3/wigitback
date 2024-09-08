@@ -81,7 +81,7 @@ def _writedoc(doc_name, doc_location, content):
             content , 
             tags=SanitizeOptions.allowed_html_tags, 
             attributes=SanitizeOptions.allowed_attributes, 
-            css_sanitizer=SanitizeOptions.allowed_css_properties,
+            css_sanitizer=SanitizeOptions.css_sanitizer,
         ))
 
 
@@ -186,7 +186,7 @@ def add(doc_name, content, user_name):
         edit(doc_name, content, user_name)
 
     except Exception as err:
-        print(err)
+        traceback.print_exc()
         return dict(status=sconst.UNKNOWN_ERROR)
     
     return dict(status=sconst.SUCCESS)
