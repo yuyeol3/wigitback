@@ -258,7 +258,7 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         repo.index.add(add_list)
         repo.index.commit(f"{user_name} updated {doc_name}")
 
-        repo.heads.main.checkout()
+        repo.heads.master.checkout()
         repo.git.merge('edit_branch')
 
         repo.delete_head("edit_branch", force=True)
@@ -296,7 +296,7 @@ def get_history(doc_name, start=0, end=100):
         repo = Repo("./documents/" + doc_name)
         commits = [
             dict(message=i.message, hash=i.hexsha, updated_time=i.committed_datetime)
-            for i in repo.iter_commits('main')
+            for i in repo.iter_commits('master')
         ]
         commits = commits[max(0, start):min(len(commits)-1, end)]
 
