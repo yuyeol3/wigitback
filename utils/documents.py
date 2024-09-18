@@ -330,6 +330,7 @@ def diff(doc_name, hash1, hash2):
     finally:
         repo.close()
 
+@check_document_perm(current_user)
 def delete_perm(doc_name):
     if (doc_name not in get_doc_list("./documents")):
         return dict(status=sconst.DOC_NOT_EXIST)
