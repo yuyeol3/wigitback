@@ -1,10 +1,14 @@
 from flask_login import UserMixin
 import utils.db as db
+from utils.db import USER_PERMS as PERM
 import traceback
 from datetime import datetime
 import bcrypt
+from utils.perms import MANAGER_PERM
 
 class User(UserMixin):
+    MANAGER_PERM = MANAGER_PERM
+
     def __init__(self, user_id, registered_date, user_type, email):
         self.user_id = user_id
         self.registered_date = registered_date
@@ -21,6 +25,9 @@ class User(UserMixin):
             return "정지"
         else:
             return "일반"
+        
+    def get_user_permission(self, perm_target):
+        return User.MANAGER_PERM[perm_target][self.user_type]
     
     @staticmethod
     def get_user_info(user_id, user_pw=None):
@@ -64,4 +71,4 @@ class User(UserMixin):
             db.db_close(con, cur)
             return result
 
-        
+

@@ -3,6 +3,9 @@ from utils.funcs import get_doc_list
 import utils.str_consts as sconst
 import traceback
 from PIL import Image
+from .perms import check_document_perm
+from flask_login import current_user
+
 
 ALLOWED_FILES = {"png", "jpg", 'gif', 'jpeg', 'webp'}
 # images 경로 있는지 확인
@@ -18,13 +21,7 @@ def _check_allowed(filename):
 def _convert_imagename(name):
     return name.replace("image::", "") + ".jpg"
 
-# def _find_img_path(name):
-#     images = get_doc_list("/".join(IMG_PATH_LIST))
-#     for idx, image_name in enumerate(images):
-#         if name in image_name:
-#             return idx
-
-
+@check_document_perm(current_user)
 def add(image_name: str, image):
     image_name = _convert_imagename(image_name)
 
@@ -63,6 +60,7 @@ def get(image_name:str):
     
     return dict(status=sconst.SUCCESS, content="/".join(IMG_PATH_LIST + [image_name]))
 
+@check_document_perm(current_user)
 def delete(image_name:str):
     image_name = _convert_imagename(image_name)
 

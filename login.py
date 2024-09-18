@@ -3,11 +3,12 @@ from flask_login import login_user, logout_user, login_required, current_user
 from init import app
 from model_user import User
 import bcrypt
-from utils.db import SALT, add_user, set_user, delete_user, get_history
+from utils.db import SALT, USER_PERMS, add_user, set_user, delete_user, get_history
 import base64
 import utils.str_consts as sconst
 import re
 import traceback
+from utils.perms import get_permission_list
 
 class LoginApi:
     @staticmethod
@@ -148,6 +149,22 @@ class LoginApi:
         except Exception as err:
             traceback.print_exc()
             return dict(status=sconst.UNKNOWN_ERROR)
+        
+    @staticmethod
+    @app.route("/checkmng/<string:perm_target>")
+    @login_required
+    def check_mng(perm_target):
+        ''' 관리자 유형인지 확인 '''
+        
+        try:
+            return get_permission_list(current_user, perm_target)
+        
+
+        except Exception as err:
+            traceback.print_exc()
+            return dict(status=sconst.UNKNOWN_ERROR)
+        
+        
 
 def register_check(user_info):
     '''
