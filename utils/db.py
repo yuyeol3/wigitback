@@ -5,8 +5,35 @@ import bcrypt
 from utils.funcs import get_doc_list
 import utils.str_consts as sconst
 import env
+from enum import Enum
 
 SALT = env.SALT
+
+class USER_PERMS:
+    ADM = "ADM"
+    OPR = "OPR"
+    USR = "USR"
+    SUS = "SUS"
+    PERM_LIST = [ADM, OPR, USR, SUS]
+
+    @staticmethod
+    def get_ord(perm_name):
+        ord_perm = {USER_PERMS.ADM:4, USER_PERMS.OPR:3, USER_PERMS.USR:2, USER_PERMS.SUS:1}
+        return ord_perm[perm_name]
+
+class SQL:
+    def __init__(self):
+        pass
+
+    def select(self):
+        pass
+
+    def update(self):
+        pass
+    
+    def delete(self):
+        pass
+
 
 def get_db_con(filename):
     con = sqlite3.connect(filename)
@@ -233,6 +260,23 @@ def update_redirections(prev_id, changed_id):
     
     finally:
         db_close(con,cur)
+
+def remove_redirections(target_id):
+    con, cur = get_db_con("database.db")
+
+    try:
+        cur.execute("DELETE FROM redirections WHERE redirect_id=?;",
+                    (target_id,))
+        # print(res)
+        con.commit()
+
+    except Exception as err:
+        traceback.print_exc()
+        return
+    
+    finally:
+        db_close(con,cur)
+
 
 def check_permission(doc_name, user_perm):
 

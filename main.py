@@ -8,6 +8,8 @@ from git import Repo
 from utils.funcs import get_doc_list
 from flask_login import login_required, current_user
 import login
+import env
+import utils.perms
 
 
 @app.route("/")
@@ -18,9 +20,9 @@ def main():
     '''
     return render_template("index.html")
 
-@app.route("/google13d59d2dbc14122a.html")
+@app.route("/" + env.GOOGLE_SITE_VERIFICATION)
 def google_cert():
-    return render_template("google13d59d2dbc14122a.html")
+    return render_template(env.GOOGLE_SITE_VERIFICATION)
 
 
 class DocApi:
@@ -42,13 +44,15 @@ class DocApi:
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
 
-        # 권한 확인
-        if dbcon.check_permission(doc_name, current_user.user_type) is False:
-            return dict(status=sconst.NO_PERMISSION)
-
-
         res = request.get_json()
-        return documents.edit(doc_name, res["content"], current_user.user_id, res["hash"], res["redirections"], res["doc_title"])
+        redirect_check = dbcon.check_redirections(doc_name)
+        if (redirect_check[0]):
+            doc_name = redirect_check[1]
+            edited_doc_title = doc_name
+            return documents.edit(doc_name, res["content"], current_user.user_id, res["hash"], res["redirections"], edited_doc_title)
+
+        else:
+            return documents.edit(doc_name, res["content"], current_user.user_id, res["hash"], res["redirections"], res["doc_title"])
 
     @staticmethod
     @app.route("/deletedoc/<string:doc_name>", methods=["GET", "POST"])
@@ -56,10 +60,6 @@ class DocApi:
     def delete_doc(doc_name : str):
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
-
-        if dbcon.check_permission(doc_name, current_user.user_type) is False:
-            return dict(status=sconst.NO_PERMISSION)
-
 
         res = request.get_json()
         return documents.edit(doc_name, sconst.DOC_DELETED, current_user.user_id, res["hash"])
@@ -71,13 +71,8 @@ class DocApi:
         if request.method == 'GET':
             return dict(status=sconst.INVALID_ACCESS)
 
-        if dbcon.check_permission(doc_name, current_user.user_type) is False:
-            return dict(status=sconst.NO_PERMISSION)
-
-
         res = request.get_json()
-        com_res = documents.add(doc_name, res, current_user.user_id)
-        return com_res
+        return documents.add(doc_name, res, current_user.user_id)
 
     @staticmethod
     @app.route("/gethistory/<string:doc_name>&<int:start>&<int:end>")
@@ -88,6 +83,15 @@ class DocApi:
     @app.route("/diff/<string:doc_name>&<string:hash1>&<string:hash2>")
     def get_diff(doc_name, hash1, hash2):
         return documents.diff(doc_name, hash1, hash2)
+    
+    @staticmethod
+    @login_required
+    @app.route("/deletedoc/perm/<string:doc_name>")
+    def delete_doc_perm(doc_name):
+        if (not utils.perms.check_perm(current_user, "document", "REMOVE_PERMANENT")):
+            return dict(status=sconst.NO_PERMISSION)
+        
+        return documents.delete_perm(doc_name)
 
 
 class ImageApi:
@@ -99,10 +103,6 @@ class ImageApi:
         if request.method == 'GET':
             return sconst.INVALID_ACCESS
         
-        # 문서처럼 권한검사 위해 image::는 떼고 
-        if dbcon.check_permission(image_name.replace("image::", ""), current_user.user_type) is False:
-            return dict(status=sconst.NO_PERMISSION)
-
         if 'file' not in request.files:
             return dict(status=sconst.NO_FILE)
         
@@ -113,9 +113,6 @@ class ImageApi:
     @app.route("/deleteimage/<string:image_name>", methods=['GET'])
     @login_required
     def delete_image(image_name):
-        if dbcon.check_permission(image_name.replace("image::", ""), current_user.user_type) is False:
-            return dict(status=sconst.NO_PERMISSION)
-        
         return images.delete(image_name)
 
     @staticmethod

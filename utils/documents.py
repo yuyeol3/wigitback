@@ -11,6 +11,7 @@ from os import path
 from flask_login import current_user
 import bleach
 from bleach.css_sanitizer import CSSSanitizer
+from .perms import check_document_perm
 
 class SanitizeOptions:
     allowed_html_tags = [
@@ -34,6 +35,8 @@ class SanitizeOptions:
         "sup",
         'blockquote',
         'ruby',
+        'details',
+        'summary'
     ]
     allowed_attributes = {
         'table': ['border', 'cellspacing', 'cellpadding', 'width', 'height'],
@@ -56,6 +59,8 @@ class SanitizeOptions:
         'width', 'height', 'border', 'padding', 'margin'
     ]
     css_sanitizer = CSSSanitizer(allowed_css_properties=allowed_css_properties)
+
+
 
 # 레포 제거
 def _rmrepo(target_path):
@@ -152,9 +157,10 @@ def get(doc_name, doc_hash=None):
         _rmrepo(f"./edits/{doc_name}")
     
 
+@check_document_perm(current_user)
 def add(doc_name, content, user_name):
     if (doc_name in get_doc_list("./documents")):
-        return sconst.DOC_ALREADY_EXISTS
+        return dict(status=sconst.DOC_ALREADY_EXISTS)
 
     try:
         doc_dir = "documents/" + doc_name
@@ -165,14 +171,14 @@ def add(doc_name, content, user_name):
         abs_doc_dir = os.path.join(os.getcwd(), doc_dir)
         print(abs_doc_dir)
 
-
-        command = [
-            "git init",
-            "git add .",
-            "git commit -m \"FIRST COMMIT\""
-        ]
+        if (os.name == "nt"):
+            command = [
+                "git init",
+                "git add .",
+                "git commit -m \"FIRST COMMIT\""
+            ]
         # 우분투인 경우 실행
-        if (os.name == "posix"):
+        elif (os.name == "posix"):
             command = [
                 ["git", "init"],
                 ["git", "add", "."],
@@ -192,21 +198,10 @@ def add(doc_name, content, user_name):
     return dict(status=sconst.SUCCESS)
  
 
+@check_document_perm(current_user)
 def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_doc_title=None):
     if (doc_name in get_doc_list("./edits")):
         return dict(status=sconst.DOC_EDIT_IN_PROGRESS)
-    
-    # 리다이렉션 문서인 경우 - 원본 문서가 편집되도록 하자
-
-    redirect_check = dbcon.check_redirections(doc_name)
-    if (redirect_check[0]):
-        # 리다이렉션이면 원본 문서에 대한 권한 재확인해야 함
-        if (dbcon.check_permission(redirect_check[1], current_user.user_type) is False):
-            return dict(status=sconst.NO_PERMISSION)
-        
-
-        doc_name = redirect_check[1]
-        edited_doc_title = doc_name
 
     # 이름 변경 처리부분
     DOC_NAME_CHANGING = False
@@ -263,7 +258,7 @@ def edit(doc_name, content, user_name, doc_hash=None, redirections=None, edited_
         repo.index.add(add_list)
         repo.index.commit(f"{user_name} updated {doc_name}")
 
-        repo.heads.master.checkout()
+        repo.heads.main.checkout()
         repo.git.merge('edit_branch')
 
         repo.delete_head("edit_branch", force=True)
@@ -301,7 +296,7 @@ def get_history(doc_name, start=0, end=100):
         repo = Repo("./documents/" + doc_name)
         commits = [
             dict(message=i.message, hash=i.hexsha, updated_time=i.committed_datetime)
-            for i in repo.iter_commits('master')
+            for i in repo.iter_commits('main')
         ]
         commits = commits[max(0, start):min(len(commits)-1, end)]
 
@@ -334,3 +329,20 @@ def diff(doc_name, hash1, hash2):
         return dict(status=sconst.UNKNOWN_ERROR)
     finally:
         repo.close()
+
+def delete_perm(doc_name):
+    if (doc_name not in get_doc_list("./documents")):
+        return dict(status=sconst.DOC_NOT_EXIST)
+
+    try:
+        
+        doc_dir = "./documents/" + doc_name
+        Repo(doc_dir).close()
+        _rmrepo(doc_dir)
+        dbcon.remove_redirections(doc_name)
+
+    except Exception as err:
+        traceback.print_exc()
+        return dict(status=sconst.UNKNOWN_ERROR)
+        
+    return dict(status=sconst.SUCCESS)
