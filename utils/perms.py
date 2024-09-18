@@ -18,7 +18,7 @@ MANAGER_PERM = {
 
 def get_permission_list(current_user, perm_target):
         manager_perms = [USER_PERMS.ADM, USER_PERMS.OPR]
-        
+
         return dict (
             status=sconst.SUCCESS, 
             content=\
