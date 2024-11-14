@@ -331,7 +331,7 @@ l0,-`+(t+144)+`c-2,-159.3,-10,-310.7,-24,-454c-53.3,-528,-210,-949.7,
         <a href="javascript:null;" id="deleteThis">삭제하기</a>
         <img src="${e.content}" id="view-image" style="">
         <button id="copy-code">이미지 코드 복사하기</button>
-    `;document.getElementById("content").innerHTML=t,l0(`wigit: ${decodeURI(a)}`),document.getElementById("deleteThis").onclick=()=>{C1(a)};const r=document.getElementById("copy-code");r.onclick=()=>{function n(l){navigator.clipboard.writeText(l).then(function(){}).catch(function(o){console.error("Could not copy text: ",o)})}const i=`<img src="${e.content}" width="(너비)px" height="(높이)px">`;n(i)}}async function C1(a){if(confirm("이 이미지를 삭제합니까?")){const e=await Jo(Z0(a));alert(e.status),location.href=`#w/${a}`}}function I1(a,e){const t=document.createElement("div");t.classList.add("manage-element");let r=`
+    `;document.getElementById("content").innerHTML=t,l0(`WIGIT: ${decodeURI(a)}`),document.getElementById("deleteThis").onclick=()=>{C1(a)};const r=document.getElementById("copy-code");r.onclick=()=>{function n(l){navigator.clipboard.writeText(l).then(function(){}).catch(function(o){console.error("Could not copy text: ",o)})}const i=`<img src="${e.content}" width="(너비)px" height="(높이)px">`;n(i)}}async function C1(a){if(confirm("이 이미지를 삭제합니까?")){const e=await Jo(Z0(a));alert(e.status),location.href=`#w/${a}`}}function I1(a,e){const t=document.createElement("div");t.classList.add("manage-element");let r=`
         이 문서 영구 삭제하기
         <button id="deletePerm" class="dangerButton">삭제</button>
     `;t.innerHTML=r;const n=t.querySelector("#deletePerm");n.onclick=async()=>{const i=await l1(e);alert(i.status),a.close(),location.hash="#w",location.hash=`#w/${e}`},a.appendChild(t)}function Qi(){l0("404");const a=`
