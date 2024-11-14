@@ -345,7 +345,7 @@ l0,-`+(t+144)+`c-2,-159.3,-10,-310.7,-24,-454c-53.3,-528,-210,-949.7,
         <a href="./#history/${be(a)}">히스토리</a>
         <a id="deleteThis"></a>
 		<a id="manage"></a>
-
+		<hr></hr>
 
 		<dialog id="manage-dialog">
 	 		<p class="dialog-name"><button id="close-dialog">X</button> 관리하기</p>
