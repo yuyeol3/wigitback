@@ -39,7 +39,11 @@ def check_document_perm(user, readonly=False):
         def wrapper(*args, **kargs):
             title = args[0].replace("image::", "")
 
-            if (isinstance(user,flask_login.AnonymousUserMixin)):
+            # readonly이면 접근 혀용
+            if (readonly and check_permission(title, USER_PERMS.ANN)):
+                return func(*args, **kargs)
+
+            elif (isinstance(user,flask_login.AnonymousUserMixin)):
                 if (readonly and check_permission(title, USER_PERMS.ANN)):
                     return func(*args, **kargs)
                 else:

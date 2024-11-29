@@ -1,10 +1,13 @@
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 import utils.db as db
 from utils.db import USER_PERMS as PERM
 import traceback
 from datetime import datetime
 import bcrypt
 from utils.perms import MANAGER_PERM
+
+class AnonymousUser(AnonymousUserMixin):
+    user_type = "ANN"
 
 class User(UserMixin):
     MANAGER_PERM = MANAGER_PERM
