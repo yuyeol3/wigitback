@@ -55,7 +55,7 @@ def check_document_perm(user, readonly=False):
                     return func(*args, **kargs)
                 
                 else:
-                    return dict(status=sconst.NO_PERMISSION)
+                    return dict(status=sconst.NO_PERMISSION, content=sconst.NO_PERMISSION)
             
         return wrapper
 
