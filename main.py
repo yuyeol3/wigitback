@@ -34,6 +34,7 @@ class DocApi:
     @staticmethod
     @app.route("/getdoc/<string:doc_name>&<string:doc_hash>", methods=['GET'])
     @app.route("/getdoc/<string:doc_name>", methods=['GET'])
+    # @login_required
     def get_doc(doc_name : str, doc_hash: str=None):
         return documents.get(doc_name, doc_hash)
 

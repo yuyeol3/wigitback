@@ -1,18 +1,21 @@
 from .db import check_permission, USER_PERMS
 import utils.str_consts as sconst
+import flask_login
 
 MANAGER_PERM = {
     "document": {
         USER_PERMS.ADM: ["REMOVE_PERMANENT", "CHANGE_EDIT_PERM"],
         USER_PERMS.OPR: ["CHANGE_EDIT_PERM"],
         USER_PERMS.USR: [],
-        USER_PERMS.SUS: []
+        USER_PERMS.SUS: [],
+        USER_PERMS.ANN: []
     },
     "user": {
         USER_PERMS.ADM: ["SUSPEND", "DELETE"],
         USER_PERMS.OPR: ["SUSPEND"],
         USER_PERMS.USR: [],
         USER_PERMS.SUS: [],
+        USER_PERMS.ANN: []
     }
 }
 
@@ -31,14 +34,18 @@ def get_permission_list(current_user, perm_target):
             )
 
 
-def check_document_perm(user):
+def check_document_perm(user, readonly=False):
     def deco(func):
         def wrapper(*args, **kargs):
-            if (user is None):
-                return dict(status=sconst.LOGIN_REQUIRED)
+            title = args[0].replace("image::", "")
+
+            if (isinstance(user,flask_login.AnonymousUserMixin)):
+                if (readonly and check_permission(title, USER_PERMS.ANN)):
+                    return func(*args, **kargs)
+                else:
+                    return dict(status=sconst.LOGIN_REQUIRED, content=sconst.LOGIN_REQUIRED)
 
             else:
-                title = args[0].replace("image::", "")
 
                 if check_permission(title, user.user_type):
                     return func(*args, **kargs)

@@ -14,11 +14,12 @@ class USER_PERMS:
     OPR = "OPR"
     USR = "USR"
     SUS = "SUS"
+    ANN = "ANN"
     PERM_LIST = [ADM, OPR, USR, SUS]
 
     @staticmethod
     def get_ord(perm_name):
-        ord_perm = {USER_PERMS.ADM:4, USER_PERMS.OPR:3, USER_PERMS.USR:2, USER_PERMS.SUS:1}
+        ord_perm = {USER_PERMS.ADM:4, USER_PERMS.OPR:3, USER_PERMS.USR:2, USER_PERMS.SUS:1, USER_PERMS.ANN:0}
         return ord_perm[perm_name]
 
 class SQL:
