@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:assets/mdx--TZcsiHr.js
-import{m as s}from"./index-DOw8UPCM.js";/*!-----------------------------------------------------------------------------
-========
 import{m as s}from"./index-DKu8NLhe.js";/*!-----------------------------------------------------------------------------
->>>>>>>> main:assets/mdx-BvckyfOy.js
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Version: 0.52.0(f6dc0eb8fce67e57f6036f4769d92c1666cdf546)
  * Released under the MIT license
